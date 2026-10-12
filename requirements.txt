@@ -1,0 +1,12 @@
+torch
+torchvision
+streamlit
+Pillow
+matplotlib
+numpy
+pandas
+opencv-python
+grad-cam
+shap>=0.42.0
+captum>=0.6.0
+reportlab>=4.0.0

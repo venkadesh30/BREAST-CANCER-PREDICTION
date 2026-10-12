@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e94b3c;
+            --primary-dark: #c62828;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --info-color: #2196F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white !important;
+        }
+
+        .navbar-brand i {
+            margin-right: 10px;
+        }
+
+        /* Header Section */
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Cards */
+        .custom-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .custom-card .card-header {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        .custom-card .card-body {
+            padding: 30px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 3px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: linear-gradient(135deg, rgba(233, 75, 60, 0.05) 0%, rgba(198, 40, 40, 0.05) 100%);
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(135deg, rgba(233, 75, 60, 0.1) 0%, rgba(198, 40, 40, 0.1) 100%);
+            border-color: var(--primary-dark);
+        }
+
+        .upload-area.dragover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-dark);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .upload-area.dragover i {
+            color: white;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        /* Predictions */
+        .prediction-result {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prediction-malignant {
+            background-color: #ffebee;
+            border-left-color: var(--danger-color);
+        }
+
+        .prediction-benign {
+            background-color: #e8f5e9;
+            border-left-color: var(--success-color);
+        }
+
+        .prediction-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .prediction-malignant .prediction-title {
+            color: var(--danger-color);
+        }
+
+        .prediction-benign .prediction-title {
+            color: var(--success-color);
+        }
+
+        /* Confidence Bar */
+        .confidence-bar {
+            background: linear-gradient(90deg, var(--success-color) 0%, var(--warning-color) 50%, var(--danger-color) 100%);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color) 0%, var(--warning-color) 50%, var(--danger-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: width 0.3s ease;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            padding: 10px 30px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary-custom:active {
+            transform: translateY(0);
+        }
+
+        /* Stats Section */
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        /* Tabs */
+        .nav-tabs .nav-link {
+            color: #666;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: white;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* Modals */
+        .modal-header {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            padding: 15px;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Image Preview */
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+
+        /* History Table */
+        .history-table {
+            font-size: 0.95rem;
+        }
+
+        .history-table thead {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Disclaimer */
+        .disclaimer-box {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .disclaimer-box strong {
+            color: var(--warning-color);
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .upload-area {
+                padding: 30px;
+            }
+            
+            .upload-area i {
+                font-size: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        /* Batch Results */
+        .batch-results {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item.malignant {
+            border-left-color: var(--danger-color);
+        }
+
+        .result-item.benign {
+            border-left-color: var(--success-color);
+        }
+
+        .result-filename {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .result-badge {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid main-container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-heartbeat"></i> Breast Cancer Detection
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#diagnosis">Diagnosis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#history">History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header-section">
+        <div class="main-container">
+            <div class="header-content">
+                <h1><i class="fas fa-microscope"></i> Breast Cancer Detection System</h1>
+                <p>AI-Powered Histopathology Analysis using Deep Learning</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Disclaimer -->
+        <div class="disclaimer-box">
+            <i class="fas fa-exclamation-triangle"></i> <strong>MEDICAL DISCLAIMER:</strong> 
+            This tool is for educational purposes only. It is <strong>NOT</strong> suitable for clinical diagnosis without proper validation. 
+            Always consult qualified medical professionals.
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="single-tab" data-bs-toggle="tab" data-bs-target="#single-content" type="button">
+                    <i class="fas fa-image"></i> Single Image Analysis
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch-content" type="button">
+                    <i class="fas fa-images"></i> Batch Analysis
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-content" type="button">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content">
+            <!-- Single Image Tab -->
+            <div class="tab-pane fade show active" id="single-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="custom-card">
+                            <div class="card-header">
+                                <i class="fas fa-upload"></i> Upload Image
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag and drop your image here or click to browse</p>
+                                    <small>Supported: PNG, JPG, JPEG (Max 16MB)</small>
+                                    <input type="file" id="singleFile" accept="image/*">
+                                </div>
+                                <button class="btn btn-primary-custom w-100 mt-3" id="analyzeBtn" disabled>
+                                    <i class="fas fa-play"></i> Analyze Image
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="custom-card">
+                            <div class="card-header">
+                                <i class="fas fa-stethoscope"></i> Analysis Results
+                            </div>
+                            <div class="card-body">
+                                <div id="loadingIndicator" class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Analyzing image...</p>
+                                </div>
+                                <div id="resultContainer" style="display: none;">
+                                    <img id="previewImage" class="image-preview" style="display: none;">
+                                    <div id="predictionResult"></div>
+                                </div>
+                                <div id="noResult" style="text-align: center; color: #999; padding: 30px 0;">
+                                    <i class="fas fa-image" style="font-size: 2rem; opacity: 0.5;"></i>
+                                    <p style="margin-top: 10px;">Upload an image to see results</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Analysis Tab -->
+            <div class="tab-pane fade" id="batch-content" role="tabpanel">
+                <div class="custom-card">
+                    <div class="card-header">
+                        <i class="fas fa-layer-group"></i> Batch Image Analysis
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="batchUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag and drop multiple images here or click to browse</p>
+                            <small>Supported: PNG, JPG, JPEG</small>
+                            <input type="file" id="batchFiles" accept="image/*" multiple>
+                        </div>
+                        <button class="btn btn-primary-custom w-100 mt-3" id="batchAnalyzeBtn" disabled>
+                            <i class="fas fa-play"></i> Analyze Batch
+                        </button>
+
+                        <div id="batchLoadingIndicator" class="loading" style="margin-top: 30px;">
+                            <div class="spinner"></div>
+                            <p>Processing images...</p>
+                        </div>
+
+                        <div id="batchResultsContainer" style="display: none; margin-top: 30px;">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="batchTotal">0</div>
+                                        <div class="stat-label">Total Images</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="batchMalignant" style="color: #f44336;">0</div>
+                                        <div class="stat-label">Malignant</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="batchBenign" style="color: #4CAF50;">0</div>
+                                        <div class="stat-label">Benign</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Detailed Results:</h5>
+                            <div id="batchResults" class="batch-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div class="tab-pane fade" id="stats-content" role="tabpanel">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statTotal">0</div>
+                            <div class="stat-label">Total Predictions</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statMalignant" style="color: #f44336;">0</div>
+                            <div class="stat-label">Malignant Cases</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statBenign" style="color: #4CAF50;">0</div>
+                            <div class="stat-label">Benign Cases</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-number" id="statPercentage">0%</div>
+                            <div class="stat-label">Malignant %</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-card" id="historySection" style="display: none;">
+                    <div class="card-header">
+                        <i class="fas fa-history"></i> Recent Predictions
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover history-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Filename</th>
+                                    <th>Prediction</th>
+                                    <th>Risk Level</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                            </tbody>
+                        </table>
+                        <button class="btn btn-outline-danger" id="clearHistoryBtn">
+                            <i class="fas fa-trash"></i> Clear History
+                        </button>
+                    </div>
+                </div>
+
+                <div id="noStats" class="alert alert-info" style="margin-top: 30px;">
+                    <i class="fas fa-info-circle"></i> No predictions yet. Analyze some images to see statistics.
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="custom-card" id="about" style="margin-top: 40px;">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> About This System
+            </div>
+            <div class="card-body">
+                <h5>How It Works</h5>
+                <p>This system uses a <strong>ResNet50</strong> deep learning model trained with <strong>Transfer Learning</strong> 
+                to analyze histopathology images for breast cancer detection.</p>
+
+                <h5 class="mt-4">Key Features</h5>
+                <ul>
+                    <li><strong>Transfer Learning:</strong> Leverages pre-trained ImageNet features for superior performance</li>
+                    <li><strong>Fast Analysis:</strong> GPU-accelerated inference for quick results</li>
+                    <li><strong>Confidence Scores:</strong> Transparency in model predictions</li>
+                    <li><strong>Batch Processing:</strong> Analyze multiple images at once</li>
+                </ul>
+
+                <h5 class="mt-4">Important Notes</h5>
+                <div class="alert alert-warning">
+                    <strong>⚠️ NOT for Clinical Use:</strong> This tool is designed for educational and research purposes only.
+                    Do not use for actual medical diagnosis without proper validation and regulatory approval.
+                </div>
+
+                <h5 class="mt-4">Model Information</h5>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Architecture:</strong></td>
+                        <td>ResNet50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Training Method:</strong></td>
+                        <td>Transfer Learning (ImageNet Pre-trained)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Input Size:</strong></td>
+                        <td>224 × 224 pixels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Classes:</strong></td>
+                        <td>2 (Benign, Malignant)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Framework:</strong></td>
+                        <td>PyTorch</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="main-container">
+            <p>&copy; 2024 Breast Cancer Detection System | Educational Purpose Only</p>
+            <p><small>⚠️ Not for clinical use | Always consult medical professionals</small></p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedFile = null;
+        let selectedFiles = [];
+
+        // Single Image Upload
+        const uploadArea = document.getElementById('uploadArea');
+        const singleFile = document.getElementById('singleFile');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+
+        uploadArea.addEventListener('click', () => singleFile.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleSingleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        singleFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleSingleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleSingleFileSelect(file) {
+            selectedFile = file;
+            uploadArea.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success-color); font-size: 2rem;"></i>
+                                    <p>${file.name}</p>
+                                    <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>`;
+            analyzeBtn.disabled = false;
+        }
+
+        analyzeBtn.addEventListener('click', () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('noResult').style.display = 'none';
+
+            fetch('/api/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayPredictionResult(data);
+                updateStats();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error analyzing image: ' + error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+            });
+        });
+
+        function displayPredictionResult(data) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'block';
+
+            const previewImg = document.getElementById('previewImage');
+            previewImg.src = data.image;
+            previewImg.style.display = 'block';
+
+            const isMalignant = data.prediction === 'Malignant';
+            const resultClass = isMalignant ? 'prediction-malignant' : 'prediction-benign';
+            const icon = isMalignant ? '⚠️' : '✅';
+            const textColor = isMalignant ? 'var(--danger-color)' : 'var(--success-color)';
+
+            const confidencePercent = parseFloat(data.confidence) * 100;
+
+            let html = `
+                <div class="prediction-result ${resultClass}">
+                    <div class="prediction-title">${icon} ${data.prediction}</div>
+                    <div style="margin: 10px 0;">
+                        <strong>Confidence:</strong> ${data.confidence}
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confidencePercent}%; background: linear-gradient(90deg, var(--success-color) 0%, var(--warning-color) 50%, var(--danger-color) 100%);">
+                            ${data.confidence}
+                        </div>
+                    </div>
+                    <div style="margin: 15px 0; font-size: 0.95rem;">
+                        <div><strong>Benign Probability:</strong> ${data.benign_prob}</div>
+                        <div><strong>Malignant Probability:</strong> ${data.malignant_prob}</div>
+                        <div style="margin-top: 10px;"><strong>Risk Level:</strong> ${data.risk_level}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('predictionResult').innerHTML = html;
+        }
+
+        // Batch Upload
+        const batchUploadArea = document.getElementById('batchUploadArea');
+        const batchFiles = document.getElementById('batchFiles');
+        const batchAnalyzeBtn = document.getElementById('batchAnalyzeBtn');
+
+        batchUploadArea.addEventListener('click', () => batchFiles.click());
+        batchUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            batchUploadArea.classList.add('dragover');
+        });
+        batchUploadArea.addEventListener('dragleave', () => {
+            batchUploadArea.classList.remove('dragover');
+        });
+        batchUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            batchUploadArea.classList.remove('dragover');
+            handleBatchFileSelect(e.dataTransfer.files);
+        });
+
+        batchFiles.addEventListener('change', (e) => {
+            handleBatchFileSelect(e.target.files);
+        });
+
+        function handleBatchFileSelect(files) {
+            selectedFiles = Array.from(files);
+            batchUploadArea.innerHTML = `<i class="fas fa-check-circle" style="color: var(--success-color); font-size: 2rem;"></i>
+                                        <p>${selectedFiles.length} image(s) selected</p>`;
+            batchAnalyzeBtn.disabled = false;
+        }
+
+        batchAnalyzeBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('files', file));
+
+            document.getElementById('batchLoadingIndicator').style.display = 'block';
+            document.getElementById('batchResultsContainer').style.display = 'none';
+
+            fetch('/api/batch-predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayBatchResults(data);
+                updateStats();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error analyzing batch: ' + error);
+                document.getElementById('batchLoadingIndicator').style.display = 'none';
+            });
+        });
+
+        function displayBatchResults(data) {
+            document.getElementById('batchLoadingIndicator').style.display = 'none';
+            document.getElementById('batchResultsContainer').style.display = 'block';
+
+            document.getElementById('batchTotal').textContent = data.total;
+            document.getElementById('batchMalignant').textContent = data.malignant;
+            document.getElementById('batchBenign').textContent = data.benign;
+
+            const resultsHtml = data.results.map(result => {
+                const isMalignant = result.prediction === 'Malignant';
+                const className = isMalignant ? 'malignant' : 'benign';
+                const icon = isMalignant ? '⚠️' : '✅';
+
+                return `
+                    <div class="result-item ${className}">
+                        <div class="result-filename">${result.filename}</div>
+                        <span class="result-badge badge" style="background: ${isMalignant ? '#f44336' : '#4CAF50'};">
+                            ${icon} ${result.prediction}
+                        </span>
+                        <span class="result-badge">${result.confidence}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('batchResults').innerHTML = resultsHtml;
+
+            if (data.errors.length > 0) {
+                alert('Some files had errors:\n' + data.errors.join('\n'));
+            }
+        }
+
+        function updateStats() {
+            fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('statTotal').textContent = data.total_predictions;
+                document.getElementById('statMalignant').textContent = data.malignant;
+                document.getElementById('statBenign').textContent = data.benign;
+
+                const percentage = data.total_predictions > 0 
+                    ? Math.round((data.malignant / data.total_predictions) * 100)
+                    : 0;
+                document.getElementById('statPercentage').textContent = percentage + '%';
+
+                if (data.total_predictions > 0) {
+                    document.getElementById('noStats').style.display = 'none';
+                    document.getElementById('historySection').style.display = 'block';
+                    updateHistoryTable();
+                }
+            });
+        }
+
+        function updateHistoryTable() {
+            fetch('/api/history')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('historyTableBody');
+                const rows = data.history.slice().reverse().map(item => {
+                    const time = new Date(item.timestamp).toLocaleTimeString();
+                    const isMalignant = item.prediction === 'Malignant';
+                    const badgeColor = isMalignant ? '#f44336' : '#4CAF50';
+
+                    return `
+                        <tr>
+                            <td>${time}</td>
+                            <td>${item.filename}</td>
+                            <td><span class="badge" style="background: ${badgeColor};">${item.prediction}</span></td>
+                            <td>${item.risk_level}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tbody.innerHTML = rows;
+            });
+        }
+
+        document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+            fetch('/api/clear-history', { method: 'POST' })
+            .then(() => {
+                updateStats();
+                alert('History cleared!');
+            });
+        });
+
+        // Initial load
+        updateStats();
+    </script>
+</body>
+</html>
